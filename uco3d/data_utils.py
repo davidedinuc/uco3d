@@ -95,7 +95,9 @@ def load_whole_sequence(
     seq_name: str,
     max_frames: int,
     num_workers: int = 10,
+    batch: int = 0,
     random_frames: bool = False,
+
 ) -> UCO3DFrameData:
     """
     Load a whole sequence from a UCO3D dataset into a single batched
@@ -108,6 +110,7 @@ def load_whole_sequence(
         num_workers: The number of workers to use for data loading.
         random_frames: If True, randomly select max_frames from the sequence.
             Otherwise, select uniformly sampled max_frames in order.
+            
     Returns:
         A FrameData object containing the loaded data.
     """
@@ -127,16 +130,30 @@ def load_whole_sequence(
                 .long()
             )
         seq_idx = [seq_idx[i] for i in sel]
+
     seq_dataset = torch.utils.data.Subset(
         dataset,
         seq_idx,
     )
+
+    if batch==0:
+        batch = len(seq_dataset)
+
     dataloader = torch.utils.data.DataLoader(
         seq_dataset,
-        batch_size=len(seq_dataset),
+        batch_size=batch,
         shuffle=False,
         num_workers=num_workers,
         collate_fn=dataset.frame_data_type.collate,
+        pin_memory=True,
     )
-    frame_data = next(iter(dataloader))
-    return frame_data
+    #frame_data = next(iter(dataloader))
+
+    # Accumulate batches with a progress bar
+    #batches = []
+    #for batch in tqdm(dataloader, desc=f"Loading {seq_name}", total=len(dataloader)):
+    #    batches.append(batch)
+
+    ## Merge batches into one FrameData (assuming this supports addition or custom merge)
+    #frame_data = dataset.frame_data_type.merge(batches)
+    return dataloader
