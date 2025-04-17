@@ -98,7 +98,7 @@ def render_splats_opencv(
         render_alphas: A tensor of shape [C, H, W] containing the rendered alphas.
         info: A dictionary containing additional information about the rendering.
     """
-
+    #import gsplat
     if not GSPLAT_AVAILABLE:
         raise RuntimeError(
             "Please install gsplat by running"
